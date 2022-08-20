@@ -11,6 +11,7 @@ from dbt.contracts.graph.compiled import CompiledResource
 from dbt.exceptions import (
     CompilationException,
     MacroReturn,
+    RuntimeException,
     raise_compiler_error,
     raise_parsing_error,
     disallow_secret_env_var,
@@ -543,10 +544,11 @@ class BaseContext(metaclass=ContextMeta):
 
     @contextmember
     @staticmethod
-    def log(msg: str, info: bool = False) -> str:
+    def log(msg: Any, info: bool = False) -> str:
         """Logs a line to either the log file or stdout.
 
-        :param msg: The message to log
+        :param msg: The message to log. If not a string, then translated into
+            a string via a call to the python builtin str() function.
         :param info: If `False`, write to the log file. If `True`, write to
             both the log file and stdout.
 
@@ -556,6 +558,10 @@ class BaseContext(metaclass=ContextMeta):
               {{ log("Running some_macro: " ~ arg1 ~ ", " ~ arg2) }}
             {% endmacro %}"
         """
+        try:
+            msg = str(msg)
+        except Exception as e:
+            raise RuntimeException("log failed to stringify the given object") from e
         if info:
             fire_event(MacroEventInfo(msg=msg))
         else:

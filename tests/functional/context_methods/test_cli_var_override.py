@@ -43,7 +43,7 @@ class TestCLIVarOverride:
 
 
 # This one switches to setting a var in 'test'
-class TestCLIVarOverridePorject:
+class TestCLIVarOverrideProject:
     @pytest.fixture(scope="class")
     def models(self):
         return {
